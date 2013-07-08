@@ -1,29 +1,31 @@
+def load_current_resource
+  definition_directory = ::File.join(node.sensu.directory, "conf.d", "checks")
+  @definition_path = ::File.join(definition_directory, "#{new_resource.name}.json")
+end
+
 action :create do
-  check = new_resource.to_hash.reject { |key, value|
-    !%w[type command subscribers standalone handlers].include?(key.to_s) || value.nil?
-  }.merge("interval" => new_resource.interval)
+  # Check attributes that have defaults require merging onto `select_attributes`
+  # results.  Currently this is only `interval`.
+  check = Sensu::Helpers.select_attributes(
+    new_resource,
+    %w[type command subscribers standalone handle handlers publish
+       low_flap_threshold high_flap_threshold
+      ]
+  ).merge("interval" => new_resource.interval).merge(new_resource.additional)
 
   definition = {
     "checks" => {
-      new_resource.name => check.merge(new_resource.additional)
+      new_resource.name => Sensu::Helpers.sanitize(check)
     }
   }
 
-  checks_directory = ::File.join(node.sensu.directory, "conf.d", "checks")
-
-  directory checks_directory do
-    recursive true
-    mode 0755
-  end
-
-  sensu_json_file ::File.join(checks_directory, "#{new_resource.name}.json") do
-    mode 0644
+  sensu_json_file @definition_path do
     content definition
   end
 end
 
 action :delete do
-  sensu_json_file ::File.join(node.sensu.directory, "conf.d", "checks", "#{new_resource.name}.json") do
+  sensu_json_file @definition_path do
     action :delete
   end
 end

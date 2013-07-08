@@ -5,7 +5,11 @@ attribute :command, :kind_of => String, :required => true
 attribute :subscribers, :kind_of => Array
 attribute :standalone, :kind_of => [TrueClass, FalseClass]
 attribute :interval, :default => 60
+attribute :handle, :kind_of => [TrueClass, FalseClass]
 attribute :handlers, :kind_of => Array
+attribute :publish, :kind_of => [TrueClass, FalseClass]
+attribute :low_flap_threshold, :kind_of => Integer
+attribute :high_flap_threshold, :kind_of => Integer
 attribute :additional, :kind_of => Hash, :default => Hash.new
 
 def initialize(*args)

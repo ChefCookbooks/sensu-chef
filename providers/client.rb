@@ -1,16 +1,14 @@
 action :create do
-  client = {
-    "name" => new_resource.name,
-    "address" => new_resource.address,
-    "subscriptions" => new_resource.subscriptions
-  }
+  client = Sensu::Helpers.select_attributes(
+    new_resource,
+    %w[name address subscriptions]
+  ).merge(new_resource.additional)
 
   definition = {
-    "client" => client.merge(new_resource.additional)
+    "client" => Sensu::Helpers.sanitize(client)
   }
 
   sensu_json_file ::File.join(node.sensu.directory, "conf.d", "client.json") do
-    mode 0644
     content definition
   end
 end

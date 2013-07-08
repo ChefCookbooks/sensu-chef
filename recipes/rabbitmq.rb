@@ -18,8 +18,8 @@
 #
 
 if node.sensu.use_ssl
-  node.set.rabbitmq.ssl = true
-  node.set.rabbitmq.ssl_port = node.sensu.rabbitmq.port
+  node.override.rabbitmq.ssl = true
+  node.override.rabbitmq.ssl_port = node.sensu.rabbitmq.port
 
   ssl_directory = "/etc/rabbitmq/ssl"
 
@@ -37,9 +37,10 @@ if node.sensu.use_ssl
     path = File.join(ssl_directory, "#{item}.pem")
     file path do
       content ssl["server"][item]
-      mode 0644
+      group "rabbitmq"
+      mode 0640
     end
-    node.set.rabbitmq["ssl_#{item}"] = path
+    node.override.rabbitmq["ssl_#{item}"] = path
   end
 end
 

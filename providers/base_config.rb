@@ -1,7 +1,8 @@
 action :create do
-  definitions = node.sensu.to_hash.reject do |key, value|
-    !%w[rabbitmq redis api dashboard].include?(key.to_s) || value.nil?
-  end
+  definitions = Sensu::Helpers.select_attributes(
+    node.sensu,
+    %w[rabbitmq redis api dashboard]
+  )
 
   # Remove the rabbitmq ssl key if we don't want ssl (otherwise sensu breaks)
   if !node.sensu.use_ssl
@@ -10,7 +11,6 @@ action :create do
   end
 
   sensu_json_file ::File.join(node.sensu.directory, "config.json") do
-    mode 0644
-    content definitions
+    content Sensu::Helpers.sanitize(definitions)
   end
 end
